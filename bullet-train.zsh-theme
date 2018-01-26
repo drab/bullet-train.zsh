@@ -487,19 +487,21 @@ prompt_dir() {
 # RBENV: shows current ruby version active in the shell; also with non-global gemsets if any is active
 # CHRUBY: shows current ruby version active in the shell
 prompt_ruby() {
-  if command -v rvm-prompt > /dev/null 2>&1; then
-    prompt_segment $BULLETTRAIN_RUBY_BG $BULLETTRAIN_RUBY_FG $BULLETTRAIN_RUBY_PREFIX" $(rvm-prompt i v g)"
-  elif command -v chruby > /dev/null 2>&1; then
-    prompt_segment $BULLETTRAIN_RUBY_BG $BULLETTRAIN_RUBY_FG $BULLETTRAIN_RUBY_PREFIX"  $(chruby | sed -n -e 's/ \* //p')"
-  elif command -v rbenv > /dev/null 2>&1; then
-    current_gemset() {
-      echo "$(rbenv gemset active 2&>/dev/null | sed -e 's/ global$//')"
-    }
+  if [[ (-f *.rb(#qN) || -f Gemfile) ]]; then
+    if command -v rvm-prompt > /dev/null 2>&1; then
+      prompt_segment $BULLETTRAIN_RUBY_BG $BULLETTRAIN_RUBY_FG $BULLETTRAIN_RUBY_PREFIX" $(rvm-prompt i v g)"
+    elif command -v chruby > /dev/null 2>&1; then
+      prompt_segment $BULLETTRAIN_RUBY_BG $BULLETTRAIN_RUBY_FG $BULLETTRAIN_RUBY_PREFIX"  $(chruby | sed -n -e 's/ \* //p')"
+    elif command -v rbenv > /dev/null 2>&1; then
+      current_gemset() {
+        echo "$(rbenv gemset active 2&>/dev/null | sed -e 's/ global$//')"
+      }
 
-    if [[ -n $(current_gemset) ]]; then
-      prompt_segment $BULLETTRAIN_RUBY_BG $BULLETTRAIN_RUBY_FG $BULLETTRAIN_RUBY_PREFIX" $(rbenv version | sed -e 's/ (set.*$//')"@"$(current_gemset)"
-    else
-      prompt_segment $BULLETTRAIN_RUBY_BG $BULLETTRAIN_RUBY_FG $BULLETTRAIN_RUBY_PREFIX" $(rbenv version | sed -e 's/ (set.*$//')"
+      if [[ -n $(current_gemset) ]]; then
+        prompt_segment $BULLETTRAIN_RUBY_BG $BULLETTRAIN_RUBY_FG $BULLETTRAIN_RUBY_PREFIX" $(rbenv version | sed -e 's/ (set.*$//')"@"$(current_gemset)"
+      else
+        prompt_segment $BULLETTRAIN_RUBY_BG $BULLETTRAIN_RUBY_FG $BULLETTRAIN_RUBY_PREFIX" $(rbenv version | sed -e 's/ (set.*$//')"
+      fi
     fi
   fi
 }
@@ -553,17 +555,19 @@ prompt_virtualenv() {
 
 # NVM: Node version manager
 prompt_nvm() {
-  local nvm_prompt
-  if type nvm >/dev/null 2>&1; then
-    nvm_prompt=$(nvm current 2>/dev/null)
-    [[ "${nvm_prompt}x" == "x" ]] && return
-  elif type node >/dev/null 2>&1; then
-    nvm_prompt="$(node --version)"
-  else
-    return
+  if [[ (-f *.js(#qN) || -d node_modules || -f package.json) ]]; then
+    local nvm_prompt
+    if type nvm >/dev/null 2>&1; then
+      nvm_prompt=$(nvm current 2>/dev/null)
+      [[ "${nvm_prompt}x" == "x" ]] && return
+    elif type node >/dev/null 2>&1; then
+      nvm_prompt="$(node --version)"
+    else
+      return
+    fi
+    nvm_prompt=${nvm_prompt}
+    prompt_segment $BULLETTRAIN_NVM_BG $BULLETTRAIN_NVM_FG $BULLETTRAIN_NVM_PREFIX$nvm_prompt
   fi
-  nvm_prompt=${nvm_prompt}
-  prompt_segment $BULLETTRAIN_NVM_BG $BULLETTRAIN_NVM_FG $BULLETTRAIN_NVM_PREFIX$nvm_prompt
 }
 
 #AWS Profile
